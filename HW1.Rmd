@@ -9,9 +9,10 @@ output: pdf_document
 ```{r setup}
 set.seed(648)
 library(dplyr)
+library(ggplot2)
 ```
 
-
+# Question 1
 ```{r question1}
 # AI disclosure: this code was mostly hand-coded by me. The only help I received from AI was that, at first, I used 'j' instead of 'i' inside the loop and did not set 'i <- j' after the loop ended. I have now revised the code to use 'i consistently throughout.
 
@@ -34,17 +35,73 @@ present_party <- function(chair = 10, p = 0.5){
 present_party()
 ```
 
+# Question 2
 ```{r question2} 
 # To prove it is correct, we should consider some extreme cases:
 present_party(chair = 10, p = 1) # would return 10 and 9 rounds
 present_party(chair = 10, p = 0) # would return 2 and 9 rounds
 present_party(chair = 1, p = 0.5) # would return 1 and 0 rounds
 ```
+# Question 3
 ```{r question3}
+set.seed(648)
 sim <- rep(0,10000)
+pass <- rep(0,10000)
 for (j in seq_along(sim)){
-  sim[j] <- present_party()
+  sim[j] <- present_party()[1]
+  pass[j] <- present_party()[2]
 }
+head(sim,10)
+head(pass,10)
+```
+# Question 4
+```{r}
+ggplot(data.frame(x = sim), aes(x = sim)) +
+  geom_histogram() +
+  scale_x_continuous(breaks = 2:10) + 
+  geom_hline(
+  yintercept = 10000 / 9,
+  linetype = "dashed")+
+  labs(
+    title = "Distribution of the Final Chair",
+    x = "Chair",
+    y = "Number of Simulations"
+  ) +
+  theme_minimal()
+```
+
+# Question 5
+```{r}
+summary(pass)
+ggplot(data.frame(x = pass), aes(x = pass)) +
+  geom_histogram(
+    binwidth = 5,
+    boundary = 9,
+    color = "white"
+  ) +
+  labs(
+    title = "Distribution of the Number of Passes",
+    x = "Number of Passes",
+    y = "Number of Simulations"
+  ) +
+  theme_minimal()
+```
+
+We find that the number of passes ranges from a minimum of 9 (which is reasonable) to a maximum of 250, with a mean of 44.9 and a median of 39. Since the mean exceeds the median, the distribution is right-skewed. The plot also reveals that as the number of passes increases, the count rises rapidly before gradually declining.
+
+# Question 6
+
+First, the histogram appears to follow a uniform distribution, meaning that, except for the host, all chairs have the same probability of being the last one visited. I think the intuition is that the chairs that have already been visited always form one connected block, and the two boundaries of this block expand until they cover the whole circle. Since the direction of expansion is random, no chair is naturally more likely to be the last remaining gap.
+
+# Question 7
+```{r}
+# AI disclosure: I originally planned to use a KS test, but ChatGPT pointed out that the KS test is designed for continuous distributions, whereas the outcome here is discrete.
+chisq.test(table(sim), p = rep(1/9, 9))
+```
+The chi-squared goodness-of-fit test gave a p-value of 0.11, so I failed to reject the null hypothesis that all nine non-host chairs are equally likely to be the last chair visited.
+
+# Question 8
+```{r}
 
 ```
 
