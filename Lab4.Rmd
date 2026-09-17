@@ -1,0 +1,43 @@
+---
+title: "Lab04"
+author: "Guangyu Qiu"
+date: "2026-09-17"
+output: pdf_document
+---
+# Part 1 Question 1: Using MC to simulate pi
+```{r}
+# original code
+pv <- profvis::profvis({
+  simulate_pi <- function(n = 5e6) {
+    inside <- 0
+    for (i in 1:n) {
+      x <- runif(1, -1, 1)
+      y <- runif(1, -1, 1)
+      if (x^2 + y^2 <= 1) inside <- inside + 1
+    }
+    4 * inside / n
+  }
+  
+  set.seed(1)
+  simulate_pi(5e6)
+})
+htmlwidgets::saveWidget(pv, "simulatepi.html")
+```
+
+```{r}
+# my attempt
+pv <- profvis::profvis({
+  simulate_pi <- function(n = 5e6) {
+    inside <- 0
+    x <- runif(n, -1, 1)
+    y <- runif(n, -1, 1)
+    inside <- (x^2 + y^2 <= 1) # now it should become 0/1, with 5e6 length
+    4 * sum(inside) / n
+  }
+  
+  set.seed(1)
+  simulate_pi(5e6)
+})
+htmlwidgets::saveWidget(pv, "simulatepi_mytry.html")
+```
+
