@@ -56,6 +56,8 @@ head(pass,10)
 ```
 # Question 4
 ```{r}
+# AI disclosure: This code was created with the help of AI.
+
 ggplot(data.frame(x = sim), aes(x = sim)) +
   geom_histogram() +
   scale_x_continuous(breaks = 2:10) + 
@@ -73,6 +75,8 @@ ggplot(data.frame(x = sim), aes(x = sim)) +
 # Question 5
 ```{r}
 summary(pass)
+
+# AI disclosure: This code was created with the help of AI.
 ggplot(data.frame(x = pass), aes(x = pass)) +
   geom_histogram(
     binwidth = 5,
@@ -102,6 +106,40 @@ The chi-squared goodness-of-fit test gave a p-value of 0.11, so I failed to reje
 
 # Question 8
 ```{r}
-
+# AI disclosure:
+# I wrote the pseudocode for this problem and asked ChatGPT to convert it into
+# executable R code. The pseudocode was as follows:
+#
+# For-loop version:
+# say prob = (0.1, 0.2, ..., 0.9), chair = 11,
+# for p in prob:
+#     for i in 10000:
+#         store [1] and [2] from present_party(11, prob[i])
+#     within the first loop, calculate the mean after completing 10000 simulations.
+#
+# My definition of "unfair" is:
+# Calculate the probability of each chair as count / total, then subtract
+# the smallest probability from the largest probability. This gives the
+# probability difference. When p = 0.5, ideally every chair should have a
+# probability of 0.1, so the probability difference should be 0.
+#
+# Therefore, plot1 has p from 0.1 to 0.9 on the X-axis and probability
+# difference (unfairness) on the Y-axis.
+# table1 contains the same information.
+#
+# Plot2 has the 10 non-host chairs (chairs 2 through 11) on the X-axis and
+# the mean count for each chair on the Y-axis. There are 9 lines in total,
+# one for each scenario, with 10,000 simulations for each scenario.
+#
+# Function version:
+# The function takes c(), containing the probabilities p, and n, representing
+# the number of simulations for each p. It then repeats the above for-loop.
 ```
 
+ 
+ 
+```{r}
+
+```
+ 
+ 
