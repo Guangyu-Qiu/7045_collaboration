@@ -107,33 +107,115 @@ The chi-squared goodness-of-fit test gave a p-value of 0.11, so I failed to reje
 # Question 8
 ```{r}
 # AI disclosure:
-# I wrote the pseudocode for this problem and asked ChatGPT to convert it into
-# executable R code. The pseudocode was as follows:
-#
+# I wrote the pseudocode for the for loop and asked ChatGPT to convert it into executable R code, then I checked and revised a little bit. For the function version I hand coded it.
+
+# The pseudocode was as follows:
+
 # For-loop version:
-# say prob = (0.1, 0.2, ..., 0.9), chair = 11,
+# say prob = (0.1, 0.2, ..., 0.9), chair = n (I can decide it, say 11),
 # for p in prob:
 #     for i in 10000:
-#         store [1] and [2] from present_party(11, prob[i])
+#         store [1] from present_party(n, prob[i]) in a matrix
 #     within the first loop, calculate the mean after completing 10000 simulations.
-#
+
 # My definition of "unfair" is:
-# Calculate the probability of each chair as count / total, then subtract
-# the smallest probability from the largest probability. This gives the
-# probability difference. When p = 0.5, ideally every chair should have a
-# probability of 0.1, so the probability difference should be 0.
-#
-# Therefore, plot1 has p from 0.1 to 0.9 on the X-axis and probability
-# difference (unfairness) on the Y-axis.
-# table1 contains the same information.
-#
-# Plot2 has the 10 non-host chairs (chairs 2 through 11) on the X-axis and
-# the mean count for each chair on the Y-axis. There are 9 lines in total,
-# one for each scenario, with 10,000 simulations for each scenario.
-#
-# Function version:
-# The function takes c(), containing the probabilities p, and n, representing
-# the number of simulations for each p. It then repeats the above for-loop.
+# Calculate the probability of each chair as count / total, then subtract the smallest probability from the largest probability. This gives the probability difference. When p = 0.5, ideally every chair should have a probability of 0.1, so the probability difference should be 0.
+
+# Therefore, plot1 has p from 0.1 to 0.9 (length(prob)) on the X-axis and probability difference (unfairness) on the Y-axis. table1 contains the same information.
+
+# Plot2 has the n-1 non-host chairs (chairs 2 through n) on the X-axis and the mean count for each chair on the Y-axis. There are length(prob) lines in total, one for each scenario, with 10000 simulations for each scenario.
+
+
+# For loop version --------------------------------------------------------
+prob <- seq(0.1, 0.9, by = 0.1)
+chair <- 11
+result <- list()
+
+for (p in prob) {
+  # Store the count of each chair for every simulation (0/1)
+  counts <- matrix(0, nrow = 10000, ncol = chair)
+  
+  for (i in 1:10000) {
+    # Run the party simulation
+    simulation <- present_party(chair, p = p)
+    # Store the counts
+    counts[i, ] <- simulation[[1]]
+  }
+  
+  # Calculate the mean count for each chair
+  mean_counts <- colMeans(counts)
+  
+  # Calculate the probability for each chair
+  probabilities <- mean_counts / sum(mean_counts)
+  
+  # Calculate unfairness
+  unfairness <- max(probabilities) - min(probabilities)
+  
+  # Store the results
+  result[[as.character(p)]] <- list(
+    mean_counts = mean_counts,
+    probabilities = probabilities,
+    unfairness = unfairness
+  )
+}
+
+
+# ------------------------------------------------------------
+# Table 1: p and unfairness
+# ------------------------------------------------------------
+
+table1 <- data.frame(
+  p = prob,
+  unfairness = sapply(result, function(x) x$unfairness)
+)
+
+table1
+
+
+# ------------------------------------------------------------
+# Plot 1: p vs. unfairness
+# ------------------------------------------------------------
+
+plot(
+  table1$p,
+  table1$unfairness,
+  type = "b",
+  xlab = "p",
+  ylab = "Probability Difference",
+  main = "Unfairness across Different Values of p"
+)
+
+
+# ------------------------------------------------------------
+# Plot 2: Mean count for each non-host chair
+# ------------------------------------------------------------
+
+plot2_data <- data.frame()
+
+for (p in prob) {
+  
+  temp <- data.frame(
+    chair = 2:chair,
+    mean_count = result[[as.character(p)]]$mean_counts[2:chair],
+    p = p
+  )
+  
+  plot2_data <- rbind(plot2_data, temp)
+}
+
+ggplot(
+  plot2_data,
+  aes(x = chair, y = mean_count, group = p)
+) +
+  geom_line(aes(linetype = factor(p))) +
+  geom_point() +
+  labs(
+    x = "Non-host Chair",
+    y = "Mean Count",
+    linetype = "p",
+    title = "Mean Count for Each Non-host Chair"
+  )
+
 ```
 
  
