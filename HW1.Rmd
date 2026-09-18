@@ -104,7 +104,7 @@ chisq.test(table(sim), p = rep(1/9, 9))
 ```
 The chi-squared goodness-of-fit test gave a p-value of 0.11, so I failed to reject the null hypothesis that all nine non-host chairs are equally likely to be the last chair visited.
 
-# Question 8
+# Question 8 for loop part
 ```{r}
 # AI disclosure:
 # I wrote the pseudocode for the for loop and asked ChatGPT to convert it into executable R code, then I checked and revised a little bit. For the function version I hand coded it.
@@ -136,13 +136,14 @@ for (p in prob) {
   final_chair <- numeric(10000)
 
   for (i in 1:10000) {
-    simulation <- present_party(chair, p = p)
-    final_chair[i] <- simulation[1]
+    simulation <- present_party(chair, p = p) 
+    final_chair[i] <- simulation[1]  # final holder
   }
 
-  # Probability that each chair is the final holder
-  probabilities <- tabulate(final_chair, nbins = chair) / length(final_chair)
-
+  # probability that each chair is the final holder
+  counts <- table(factor(final_chair, levels = 1:chair))
+  probabilities <- counts / length(final_chair)
+  # for this inner loop under given p, calculate unfairness
   unfairness <- max(probabilities) - min(probabilities)
 
   result[[as.character(p)]] <- list(
@@ -219,7 +220,7 @@ ggplot(
 ```
 
  
- 
+# Question 8 function part
 ```{r}
 
 ```
