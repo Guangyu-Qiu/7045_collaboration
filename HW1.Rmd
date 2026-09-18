@@ -1,20 +1,27 @@
 ---
-title: "HW1"
+title: "Homework 1"
 author: "Guangyu Qiu"
-date: "2026-09-14"
-output: pdf_document
+date: "2026-09-18"
+output:
+  pdf_document:
+    latex_engine: xelatex
 ---
 ## At first glance, we can see that the ball will end up in the hands of the last person who first touched it. Since everyone is sitting around a round table, my guess is that the person sitting opposite the host is the most likely to end up holding the ball (given p = 0.5).
 
-```{r setup}
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE)
 set.seed(648)
+
 library(dplyr)
 library(ggplot2)
 ```
 
 # Question 1
 ```{r question1}
-# AI disclosure: this code was mostly hand-coded by me. The only help I received from AI was that, at first, I used 'j' instead of 'i' inside the loop and did not set 'i <- j' after the loop ended. I have now revised the code to use 'i consistently throughout.
+# AI disclosure: this code was mostly hand-coded by me. The only help I received from AI 
+# was that, at first, I used 'j' instead of 'i' inside the loop and did not set 'i <- j' 
+# after the loop ended. I have now revised the code to use 'i consistently throughout.
 
 # say p is probability for heads, which mean left
 present_party <- function(chair = 10, p = 0.5){
@@ -99,7 +106,8 @@ First, the histogram appears to follow a uniform distribution, meaning that, exc
 
 # Question 7
 ```{r}
-# AI disclosure: I originally planned to use a KS test, but ChatGPT pointed out that the KS test is designed for continuous distributions, whereas the outcome here is discrete.
+# AI disclosure: I originally planned to use a KS test, but ChatGPT pointed out that the
+# KS test is designed for continuous distributions, whereas the outcome here is discrete.
 chisq.test(table(sim), p = rep(1/9, 9))
 ```
 The chi-squared goodness-of-fit test gave a p-value of 0.11, so I failed to reject the null hypothesis that all nine non-host chairs are equally likely to be the last chair visited.
@@ -107,7 +115,8 @@ The chi-squared goodness-of-fit test gave a p-value of 0.11, so I failed to reje
 # Question 8 for loop part
 ```{r}
 # AI disclosure:
-# I wrote the pseudocode for the for loop and asked ChatGPT to convert it into executable R code, then I checked and revised a little bit. 
+# I wrote the pseudocode for the for loop and asked ChatGPT to convert it into 
+# executable R code, then I checked and revised a little bit. 
 
 # The pseudocode was as follows:
 
@@ -119,14 +128,21 @@ The chi-squared goodness-of-fit test gave a p-value of 0.11, so I failed to reje
 #     within the first loop, calculate the mean after completing 10000 simulations.
 
 # My definition of "unfair" is:
-# Calculate the probability of each chair as count / total, then subtract the smallest probability from the largest probability. This gives the probability difference. When p = 0.5, ideally every chair should have a probability of 0.1, so the probability difference should be 0.
+# Calculate the probability of each chair as count / total, then subtract the smallest
+# probability from the largest probability. This gives the probability difference. 
+# When p = 0.5, ideally every chair should have a probability of 0.1, so the probability
+# difference should be 0.
 
-# Therefore, plot1 has p from 0.1 to 0.9 (length(prob)) on the X-axis and probability difference (unfairness) on the Y-axis. table1 contains the same information.
+# Therefore, plot1 has p from 0.1 to 0.9 (length(prob)) on the X-axis and probability
+# difference (unfairness) on the Y-axis. table1 contains the same information.
 
-# Plot2 has the n-1 non-host chairs (chairs 2 through n) on the X-axis and the mean count for each chair on the Y-axis. There are length(prob) lines in total, one for each scenario, with 10000 simulations for each scenario.
+# Plot2 has the n-1 non-host chairs (chairs 2 through n) on the X-axis and the mean count
+# for each chair on the Y-axis. There are length(prob) lines in total, one for each
+# scenario, with 10000 simulations for each scenario.
 
 
 # For loop version --------------------------------------------------------
+set.seed(648)
 prob <- seq(0.1, 0.9, by = 0.1)
 chair <- 11
 result <- list()
@@ -224,7 +240,9 @@ Figure 1 shows that unfairness increases as p moves farther away from 0.5. Figur
  
 # Question 8 function part
 ```{r}
-# AI disclosure: since we are asked to use the apply fucntion, I asked chatgpt for help regarding how to use lapply (what we are doing is just change the outer loop to lapply)
+# AI disclosure: since we are asked to use the apply fucntion, I asked chatgpt for help
+# regarding how to use lapply (what we are doing is just change the outer loop to lapply)
+set.seed(648)
 prob <- seq(0.1, 0.9, by = 0.1)
 chair <- 11
 result <- list()
@@ -316,13 +334,13 @@ ggplot(
   ) +
   theme_minimal()
 ```
+
 # Question 9
 ```{r}
+set.seed(648)
 prob <- seq(0.1, 0.9, by = 0.1)
 chair <- 11
 result <- list()
-
-
 
 time1 <- system.time({
   for (p in prob) {
@@ -383,57 +401,6 @@ I would choose the function approach because it can be easily reused. Changing a
 Whether a result is considered fair is somewhat subjective. Under my definition, I consider a probability difference of 0.1 to already be unfair, so only p = 0.5 would be considered fair. I interpret the question as asking how unfairness changes as p moves away from 0.5: whether it increases at a decreasing rate, linearly, or at an increasing rate. If the increase were slow at first, there could be slightly biased values of p for which the level of unfairness remains relatively small. However, Plot 1 shows that unfairness increases approximately linearly as p moves away from 0.5. Therefore, I would conclude that the fair result is fragile rather than robust to bias in the coin.
 
 # Question 12
-```{r}
-# AI disclosure: I asked AI to add another loop outside the current code (function version) and store/present as matrix
-
-prob <- seq(0.1, 0.9, by = 0.1)
-chairs <- 5:21
-
-run_simulation <- function(p, chair, n_sim = 10000) {
-
-  final_chair <- numeric(n_sim)
-
-  for (i in 1:n_sim) {
-    final_chair[i] <- present_party(chair, p = p)[1]
-  }
-
-  counts <- table(factor(final_chair, levels = 1:chair))
-
-  probabilities <- as.numeric(counts) / length(final_chair)
-
-  unfairness <- max(probabilities[2:chair]) -
-                min(probabilities[2:chair])
-
-  return(unfairness)
-}
-
-
-# Sweep over number of chairs and probability of heads
-unfairness_matrix <- matrix(
-  0,
-  nrow = length(chairs),
-  ncol = length(prob)
-)
-
-for (i in seq_along(chairs)) {
-
-  for (j in seq_along(prob)) {
-
-    unfairness_matrix[i, j] <- run_simulation(
-      p = prob[j],
-      chair = chairs[i],
-      n_sim = 10000
-    )
-  }
-}
-
-
-# Add row and column names
-rownames(unfairness_matrix) <- paste0("Chair = ", chairs)
-colnames(unfairness_matrix) <- paste0("p = ", prob)
-
-# Display matrix
-unfairness_matrix
-```
+I originally planned to add another loop to my current code and vary the number of chairs from 5 to 21. However, I realized that my current definition of fairness depends on the number of chairs, so directly comparing unfairness across different table sizes would not be appropriate. I would need to develop a different fairness measure that allows for meaningful comparisons across different numbers of chairs. For now, I will leave this question as it is.
 
  
