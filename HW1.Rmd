@@ -132,90 +132,90 @@ chair <- 11
 result <- list()
 
 for (p in prob) {
-  # Store the count of each chair for every simulation (0/1)
-  counts <- matrix(0, nrow = 10000, ncol = chair)
-  
+
+  final_chair <- numeric(10000)
+
   for (i in 1:10000) {
-    # Run the party simulation
     simulation <- present_party(chair, p = p)
-    # Store the counts
-    counts[i, ] <- simulation[[1]]
+    final_chair[i] <- simulation[1]
   }
-  
-  # Calculate the mean count for each chair
-  mean_counts <- colMeans(counts)
-  
-  # Calculate the probability for each chair
-  probabilities <- mean_counts / sum(mean_counts)
-  
-  # Calculate unfairness
+
+  # Probability that each chair is the final holder
+  probabilities <- tabulate(final_chair, nbins = chair) / length(final_chair)
+
   unfairness <- max(probabilities) - min(probabilities)
-  
-  # Store the results
+
   result[[as.character(p)]] <- list(
-    mean_counts = mean_counts,
     probabilities = probabilities,
     unfairness = unfairness
   )
 }
 
 
-# ------------------------------------------------------------
 # Table 1: p and unfairness
-# ------------------------------------------------------------
-
 table1 <- data.frame(
+  `Prob of Head` = paste0(prob * 100, "%"),
+  unfairness = sapply(result, function(x) x$unfairness),
+  check.names = FALSE
+)
+
+print(table1, row.names = FALSE)
+
+
+# Plot 1: p vs. unfairness
+plot1_data <- data.frame(
   p = prob,
   unfairness = sapply(result, function(x) x$unfairness)
 )
 
-table1
+ggplot(
+  plot1_data,
+  aes(x = p, y = unfairness)
+) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(breaks = seq(0.1, 0.9, by = 0.1)) +
+  labs(
+    x = "Probability of Head",
+    y = "Probability Difference",
+    title = "Unfairness across Different Values of p"
+  ) +
+  theme_minimal()
 
 
-# ------------------------------------------------------------
-# Plot 1: p vs. unfairness
-# ------------------------------------------------------------
-
-plot(
-  table1$p,
-  table1$unfairness,
-  type = "b",
-  xlab = "p",
-  ylab = "Probability Difference",
-  main = "Unfairness across Different Values of p"
-)
-
-
-# ------------------------------------------------------------
 # Plot 2: Mean count for each non-host chair
-# ------------------------------------------------------------
-
 plot2_data <- data.frame()
 
 for (p in prob) {
-  
+
   temp <- data.frame(
-    chair = 2:chair,
-    mean_count = result[[as.character(p)]]$mean_counts[2:chair],
+    chair = 2:chair, # exclude chair 1 as the prob is 0
+    probability = result[[as.character(p)]]$probabilities[2:chair],
     p = p
   )
-  
+
   plot2_data <- rbind(plot2_data, temp)
 }
 
 ggplot(
   plot2_data,
-  aes(x = chair, y = mean_count, group = p)
-) +
-  geom_line(aes(linetype = factor(p))) +
-  geom_point() +
-  labs(
-    x = "Non-host Chair",
-    y = "Mean Count",
-    linetype = "p",
-    title = "Mean Count for Each Non-host Chair"
+  aes(
+    x = chair,
+    y = probability,
+    group = p,
+    color = factor(p)
   )
-
+) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(breaks = 2:chair) +
+  labs(
+    x = "Final Holder Chair",
+    y = "Probability",
+    color = "Probability of Head",
+    title = "Probability of Being the Final Holder"
+  ) +
+  theme_minimal()
 ```
 
  
