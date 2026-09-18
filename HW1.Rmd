@@ -218,15 +218,16 @@ ggplot(
   ) +
   theme_minimal()
 ```
-I define unfairness as the probability of the chair with the highest probability of becoming the final holder minus the probability of the chair with the lowest probability. Under the fair condition (p = 0.5), this value should be 0 ideally. As p moves farther away from 0.5, the degree of unfairness increases. For example, when p = 0.1 or 0.9, the difference between the highest and lowest probabilities is 0.89. 
+I define unfairness as the difference between the highest and lowest probabilities among the chairs of becoming the final holder. Under the fair condition (p = 0.5), this value should be 0 ideally. As p moves farther away from 0.5, the degree of unfairness increases. For example, when p = 0.1 or 0.9, the difference between the highest and lowest probabilities is around 0.89. 
 
-Figure 1 shows that unfairness increases as p moves farther away from 0.5. Figure 2 shows the probability of each chair becoming the final holder under different values of p (nine values in total). As can be seen, when p = 0.1, the probability for chair 2 is close to 95%. From p = 0.1 to p = 0.5, the lines become increasingly flatter, indicating that the probabilities become more evenly distributed. From p = 0.5 to p = 0.9, the lines become steeper again.
+Figure 1 shows that unfairness increases as p moves farther away from 0.5. Figure 2 shows the probability of each chair becoming the final holder under different values of p (nine values in total). As can be seen, when p = 0.1, the probability for chair 2 to be the final winner is close to 95%. From p = 0.1 to p = 0.5, the lines become increasingly flatter, indicating that the probabilities become more evenly distributed. From p = 0.5 to p = 0.9, the lines become steeper again.
  
 # Question 8 function part
 ```{r}
 # AI disclosure: since we are asked to use the apply fucntion, I asked chatgpt for help regarding how to use lapply (what we are doing is just change the outer loop to lapply)
 prob <- seq(0.1, 0.9, by = 0.1)
 chair <- 11
+result <- list()
 
 run_simulation <- function(p, chair = 11, n_sim = 10000) {
 
@@ -316,4 +317,123 @@ ggplot(
   theme_minimal()
 ```
 # Question 9
+```{r}
+prob <- seq(0.1, 0.9, by = 0.1)
+chair <- 11
+result <- list()
+
+
+
+time1 <- system.time({
+  for (p in prob) {
+
+    final_chair <- numeric(100000)
+  
+    for (i in 1:100000) {
+      simulation <- present_party(chair, p = p) 
+      final_chair[i] <- simulation[1]  # final holder
+    }
+  
+    # probability that each chair is the final holder
+    counts <- table(factor(final_chair, levels = 1:chair))
+    probabilities <- as.numeric(counts) / length(final_chair)
+    # for this inner loop under given p, calculate unfairness
+    unfairness <- max(probabilities) - min(probabilities)
+  
+    result[[as.character(p)]] <- list(
+      probabilities = probabilities,
+      unfairness = unfairness
+    )
+  }
+})
+
+time2 <- system.time({
+  run_simulation <- function(p, chair = 11, n_sim = 100000) {
+  
+    final_chair <- numeric(n_sim)
+  
+    for (i in 1:n_sim) {
+      final_chair[i] <- present_party(chair, p = p)[1]
+    }
+  
+    counts <- table(factor(final_chair, levels = 1:chair))
+    probabilities <- as.numeric(counts) / length(final_chair)
+  
+    unfairness <- max(probabilities[2:chair]) -
+                  min(probabilities[2:chair])
+  
+    list(
+      probabilities = probabilities,
+      unfairness = unfairness
+    )
+  }
+  
+  result <- lapply(prob, run_simulation, chair = chair, n_sim = 100000)
+})
+
+time1
+time2
+```
+To see a larger difference in run time, I increased the number of simulations from 10000 to 100000. However, I still did not observe a significant difference between the two methods. This is reasonable because lapply calls a function sequentially for each element, which is essentially equivalent to a for loop.
+
+# Question 10
+I would choose the function approach because it can be easily reused. Changing an input can affect multiple places at the same time, and the longer the code is, the greater the benefit becomes. Since the code we wrote today was quite short, the difference is not very significant. In my future vibe coding, I will try to have Codex write functions whenever possible, and the more parameters, the better.
+
+# Question 11
+Whether a result is considered fair is somewhat subjective. Under my definition, I consider a probability difference of 0.1 to already be unfair, so only p = 0.5 would be considered fair. I interpret the question as asking how unfairness changes as p moves away from 0.5: whether it increases at a decreasing rate, linearly, or at an increasing rate. If the increase were slow at first, there could be slightly biased values of p for which the level of unfairness remains relatively small. However, Plot 1 shows that unfairness increases approximately linearly as p moves away from 0.5. Therefore, I would conclude that the fair result is fragile rather than robust to bias in the coin.
+
+# Question 12
+```{r}
+# AI disclosure: I asked AI to add another loop outside the current code (function version) and store/present as matrix
+
+prob <- seq(0.1, 0.9, by = 0.1)
+chairs <- 5:21
+
+run_simulation <- function(p, chair, n_sim = 10000) {
+
+  final_chair <- numeric(n_sim)
+
+  for (i in 1:n_sim) {
+    final_chair[i] <- present_party(chair, p = p)[1]
+  }
+
+  counts <- table(factor(final_chair, levels = 1:chair))
+
+  probabilities <- as.numeric(counts) / length(final_chair)
+
+  unfairness <- max(probabilities[2:chair]) -
+                min(probabilities[2:chair])
+
+  return(unfairness)
+}
+
+
+# Sweep over number of chairs and probability of heads
+unfairness_matrix <- matrix(
+  0,
+  nrow = length(chairs),
+  ncol = length(prob)
+)
+
+for (i in seq_along(chairs)) {
+
+  for (j in seq_along(prob)) {
+
+    unfairness_matrix[i, j] <- run_simulation(
+      p = prob[j],
+      chair = chairs[i],
+      n_sim = 10000
+    )
+  }
+}
+
+
+# Add row and column names
+rownames(unfairness_matrix) <- paste0("Chair = ", chairs)
+colnames(unfairness_matrix) <- paste0("p = ", prob)
+
+# Display matrix
+unfairness_matrix
+```
+
  
